@@ -18,8 +18,8 @@ Werkzeug==2.3.7
 gunicorn==21.2.0
 lxml==4.9.3
 chardet==5.2.0
-urllib3==2.0.7
-certifi==2023.7.22
+urllib3==2.5.0
+certifi==2025.6.15
 idna==3.4
 charset-normalizer==3.3.0
 six==1.16.0
@@ -45,5 +45,5 @@ pdfplumber==0.11.7
 pypdf==4.0.1
 uuid
 playwright==1.40.0
-selenium==4.16.2
+selenium==4.34.2
 webdriver-manager==4.0.1
