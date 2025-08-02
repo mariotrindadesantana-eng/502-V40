@@ -76,6 +76,10 @@ class AutoSaveManager:
     ) -> str:
         """Salva etapa imediatamente com timestamp único"""
         
+        # Validação crítica para JSON válido
+        if not isinstance(dados, (dict, list, str, int, float, bool, type(None))):
+            dados = str(dados)
+        
         timestamp = timestamp or time.time()
         timestamp_str = datetime.fromtimestamp(timestamp).strftime("%Y%m%d_%H%M%S_%f")[:-3]
         
@@ -108,7 +112,7 @@ class AutoSaveManager:
                 "tamanho_dados": len(str(dados)) if dados else 0
             }
             
-            # Salva arquivo JSON
+            # Salva arquivo JSON - CORREÇÃO: mode='w' para arquivo único
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(save_data, f, ensure_ascii=False, indent=2, default=str)
             

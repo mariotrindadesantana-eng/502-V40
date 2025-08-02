@@ -161,13 +161,18 @@ class PlaywrightExtractor:
     async def _init_browser(self):
         """Inicializa browser Playwright"""
         try:
-            self.playwright = await async_playwright().start()
-            
-            # Usa Chromium para melhor compatibilidade
-            self.browser = await self.playwright.chromium.launch(
-                headless=True,
-                args=self.browser_args
-            )
+            try:
+                self.playwright = await async_playwright().start()
+                
+                # Usa Chromium para melhor compatibilidade
+                self.browser = await self.playwright.chromium.launch(
+                    headless=True,
+                    args=self.browser_args
+                )
+            except Exception as browser_error:
+                logger.error(f"❌ Playwright não disponível: {browser_error}")
+                self.available = False
+                return None
             
             # Cria contexto com configurações otimizadas
             self.context = await self.browser.new_context(
@@ -184,6 +189,7 @@ class PlaywrightExtractor:
             
         except Exception as e:
             logger.error(f"❌ Erro ao inicializar browser: {e}")
+            self.available = False
             raise
     
     async def _detect_page_type(self, page: Page) -> str:

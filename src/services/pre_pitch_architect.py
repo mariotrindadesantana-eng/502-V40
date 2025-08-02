@@ -9,6 +9,7 @@ import time
 import random
 import logging
 import json
+import json
 from typing import Dict, List, Any, Optional
 from services.ai_manager import ai_manager
 from services.auto_save_manager import salvar_etapa, salvar_erro
@@ -179,9 +180,9 @@ class PrePitchArchitect:
             logger.error(f"❌ Erro ao gerar pré-pitch: {str(e)}")
             salvar_erro("pre_pitch_sistema", e, contexto={"segmento": context_data.get('segmento')})
             
-            # Retorna sistema básico em vez de falhar
-            logger.warning("🔄 Retornando pré-pitch básico")
-            return self._generate_fallback_pre_pitch_system(context_data)
+            # CORREÇÃO: Não retorna fallback silencioso se houve erro crítico
+            logger.error("❌ Pré-pitch falhou — não gerando fallback")
+            return None
     
     def _get_basic_drivers(self, context_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Retorna drivers básicos como fallback"""

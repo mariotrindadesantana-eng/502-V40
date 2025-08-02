@@ -10,6 +10,8 @@ import logging
 import base64
 import requests
 import json
+import re
+import json
 from urllib.parse import parse_qs, urlparse, unquote
 from typing import Optional
 
@@ -25,6 +27,40 @@ class URLResolver:
         })
         self.timeout = 10
         
+    def decode_bing_url(self, bing_url: str) -> str:
+        """Decodifica URLs do Bing com parâmetro u=a1..."""
+        try:
+            if "u=a1" not in bing_url:
+                return bing_url
+            
+            # Extrai parâmetro u
+            parsed = urlparse(bing_url)
+            query_params = parse_qs(parsed.query)
+            u_param = query_params.get('u', [''])[0]
+            
+            if u_param.startswith('a1'):
+                # Remove 'a1' e decodifica
+                encoded_part = u_param[2:]  # Remove 'a1'
+                
+                # Adiciona padding se necessário
+                missing_padding = len(encoded_part) % 4
+                if missing_padding:
+                    encoded_part += '=' * (4 - missing_padding)
+                
+                # Decodifica Base64
+                decoded_bytes = base64.b64decode(encoded_part)
+                decoded_url = decoded_bytes.decode('utf-8', errors='ignore')
+                
+                if decoded_url.startswith('http'):
+                    logger.info(f"✅ URL Bing decodificada: {decoded_url}")
+                    return decoded_url
+            
+            return bing_url
+            
+        except Exception as e:
+            logger.error(f"❌ Erro ao decodificar URL Bing: {e}")
+            return bing_url
+    
     def resolve_redirect_url(self, url: str) -> str:
         """
         Resolve URLs de redirecionamento do Bing, Google e encurtadores.
@@ -35,7 +71,7 @@ class URLResolver:
             # Bing: URLs com u=a1aHR0c...
             if "bing.com/ck/a" in url and "u=a1" in url:
                 logger.info(f"🔄 Resolvendo URL do Bing: {url[:100]}...")
-                resolved = self._resolve_bing_url(url)
+                resolved = self.decode_bing_url(url)
                 if resolved and resolved != url and resolved.startswith('http'):
                     logger.info(f"✅ URL Bing resolvida: {resolved}")
                     return resolved

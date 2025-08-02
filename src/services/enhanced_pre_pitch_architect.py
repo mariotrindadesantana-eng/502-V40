@@ -173,7 +173,9 @@ class EnhancedPrePitchArchitect:
         except Exception as e:
             logger.error(f"❌ Erro crítico no pré-pitch aprimorado: {str(e)}")
             salvar_erro("pre_pitch_enhanced_erro", e, contexto=context_data)
-            return self._generate_emergency_pre_pitch(context_data, [str(e)])
+            # CORREÇÃO: Não retorna fallback se erro crítico
+            logger.error("❌ Pré-pitch aprimorado falhou — não gerando fallback")
+            return None
     
     def _validate_input_data(self, drivers_data: Dict[str, Any], avatar_data: Dict[str, Any], context_data: Dict[str, Any]) -> Dict[str, Any]:
         """Validação robusta dos dados de entrada"""

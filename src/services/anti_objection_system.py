@@ -9,6 +9,7 @@ import time
 import random
 import logging
 import json
+import json
 from typing import Dict, List, Any, Optional
 from services.ai_manager import ai_manager
 from services.auto_save_manager import salvar_etapa, salvar_erro
@@ -270,9 +271,10 @@ class AntiObjectionSystem:
                     logger.error(f"❌ Script muito curto: {script[:30]}...")
                     return False
                 
-                # Verifica se não é genérico
-                if 'customizado para' in script.lower() and len(script) < 100:
-                    logger.error(f"❌ Script genérico detectado: {script[:50]}...")
+                # CORREÇÃO: Validação rigorosa contra conteúdo genérico
+                generic_indicators = ['customizado para', 'baseado em', 'específico para', 'genérico', 'comprovados', 'garantia']
+                if any(indicator in script.lower() for indicator in generic_indicators):
+                    logger.error(f"❌ Script genérico/IA detectado: {script[:50]}...")
                     return False
                 
                 total_content += len(script)
@@ -564,8 +566,9 @@ RETORNE APENAS JSON VÁLIDO:
         except Exception as e:
             logger.error(f"❌ Erro crítico ao gerar scripts personalizados: {str(e)}")
             salvar_erro("scripts_personalizados", e, contexto=context_data)
-            # Retorna scripts básicos em vez de falhar
-            return self._create_basic_scripts(avatar_data, context_data)
+            # CORREÇÃO: Não retorna fallback silencioso
+            logger.error("❌ Sistema anti-objeção falhou — não gerando fallback")
+            return None
     
     def _create_basic_counter_attacks(self, context_data: Dict[str, Any]) -> Dict[str, Any]:
         """Cria contra-ataques básicos como fallback"""

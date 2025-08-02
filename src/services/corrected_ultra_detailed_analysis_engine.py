@@ -178,7 +178,9 @@ class CorrectedUltraDetailedAnalysisEngine:
             if not final_validation['valid']:
                 error_msg = f"ANÁLISE FINAL INVÁLIDA: {final_validation['errors']}"
                 salvar_erro("analise_final_invalida", ValueError(error_msg), contexto=final_validation)
-                raise Exception(error_msg)
+                # CORREÇÃO: Falha explícita sem fallback
+                logger.error("❌ Análise final rejeitada por baixa qualidade")
+                raise Exception(f"ANÁLISE REJEITADA: {error_msg}")
             
             end_time = time.time()
             processing_time = end_time - start_time
@@ -579,11 +581,18 @@ Se não houver dados suficientes para uma seção, OMITA completamente.
             if not insights or len(insights) < 15:
                 errors.append(f"Insights insuficientes: {len(insights) if insights else 0} < 15")
             
-            # Verifica qualidade dos insights
+            # CORREÇÃO: Validação rigorosa de profundidade dos insights
             if insights:
-                substantial_insights = [i for i in insights if len(i) > 80]
-                if len(substantial_insights) < len(insights) * 0.8:
-                    errors.append("Muitos insights superficiais")
+                superficial_count = 0
+                for insight in insights:
+                    if (len(insight) < 50 or 
+                        'superficial' in insight.lower() or
+                        'genérico' in insight.lower() or
+                        'baseado em' in insight.lower()):
+                        superficial_count += 1
+                
+                if superficial_count > len(insights) * 0.2:  # Máximo 20% superficiais
+                    errors.append(f"Muitos insights superficiais: {superficial_count}/{len(insights)}")
         
         # Verifica indicadores de simulação
         analysis_str = json.dumps(analysis, ensure_ascii=False).lower()

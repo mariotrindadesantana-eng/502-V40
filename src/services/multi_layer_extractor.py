@@ -68,10 +68,10 @@ class MultiLayerExtractor:
             "timestamp": time.time()
         }, categoria="pesquisa_web")
         
-        # Tenta cada camada em sequência
-        for layer_name, layer_func in self.extraction_layers:
+        # CORREÇÃO: Tenta cada camada apenas uma vez
+        for i, (layer_name, layer_func) in enumerate(self.extraction_layers):
             try:
-                logger.info(f"🔍 Tentando camada: {layer_name}")
+                logger.info(f"🔍 Tentando camada {i+1}/{len(self.extraction_layers)}: {layer_name}")
                 
                 start_time = time.time()
                 result = layer_func(url, context)
@@ -112,16 +112,13 @@ class MultiLayerExtractor:
                         logger.info(f"✅ Extração bem-sucedida com {layer_name}: {len(result['content'])} chars, qualidade {validation['score']:.1f}%")
                         return result
                     else:
-                        logger.warning(f"⚠️ {layer_name} não atendeu critérios de qualidade")
-                        continue
+                        logger.warning(f"⚠️ Camada {i+1} ({layer_name}) não atendeu critérios de qualidade")
                 else:
-                    logger.warning(f"⚠️ {layer_name} falhou: {result.get('error', 'Erro desconhecido')}")
-                    continue
+                    logger.warning(f"⚠️ Camada {i+1} ({layer_name}) falhou: {result.get('error', 'Erro desconhecido')}")
                     
             except Exception as e:
-                logger.error(f"❌ Erro na camada {layer_name}: {e}")
+                logger.error(f"❌ Erro na camada {i+1} ({layer_name}): {e}")
                 salvar_erro(f"extracao_{layer_name}", e, contexto={"url": url})
-                continue
         
         # Todas as camadas falharam
         self.stats['quality_distribution']['failed'] += 1

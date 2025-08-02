@@ -9,6 +9,7 @@ import time
 import random
 import logging
 import json
+import json
 from typing import Dict, List, Any, Optional
 from services.ai_manager import ai_manager
 from services.auto_save_manager import salvar_etapa, salvar_erro
